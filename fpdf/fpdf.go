@@ -46,12 +46,19 @@ func New(ctx context.Context, c Config, fontsCache fonts.Cache) *Impl {
 	fpdf.Fpdf.SetSubject(c.Subject, true)
 	fpdf.Fpdf.SetCellMargin(0)
 
+	// Pre-register the logo so HeaderFunc/FooterFunc closures can pull it
+	// up with impl.UseImage("logo", ...) without having to call
+	// RegisterImage themselves. Mirrors the gopdf backend's behavior.
+	if c.Logo != nil {
+		fpdf.RegisterImage("logo", c.LogoFormat, c.Logo)
+	}
+
 	if c.HeaderFunc != nil {
-		fpdf.Fpdf.SetHeaderFunc(c.HeaderFunc(fpdf, fontsCache))
+		fpdf.Fpdf.SetHeaderFunc(c.HeaderFunc(&fpdf, fontsCache))
 	}
 
 	if c.FooterFunc != nil {
-		fpdf.Fpdf.SetFooterFunc(c.FooterFunc(fpdf, fontsCache))
+		fpdf.Fpdf.SetFooterFunc(c.FooterFunc(&fpdf, fontsCache))
 	}
 
 	fpdf.AddPage()
@@ -110,6 +117,14 @@ func (f Impl) SetMarginRight(margin float64) {
 
 func (f Impl) SetMarginTop(margin float64) {
 	f.Fpdf.SetTopMargin(margin)
+}
+
+// SetMarginBottom sets the bottom page margin via gofpdf's auto-page-break
+// trigger — that's the only way gofpdf exposes the bottom margin, since
+// gofpdf.SetMargins only accepts left/top/right. Always re-enables auto
+// page break so the renderer's page-break expectations hold.
+func (f Impl) SetMarginBottom(margin float64) {
+	f.Fpdf.SetAutoPageBreak(true, margin)
 }
 
 func (f Impl) SetFont(family string, style string, size int) error {
