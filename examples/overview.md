@@ -89,6 +89,12 @@ Indented code (four-space prefix) also works without a language tag:
     untagged := "no syntax highlighting here"
     fmt.Println(untagged)
 
+## Images
+
+Images can be loaded from a remote URL. The Markdown alt text doubles as a caption beneath the image:
+
+![A mountain landscape (Lorem Picsum stock photo id 1015).](https://picsum.photos/id/1015/640/360.jpg)
+
 ## Horizontal rule
 
 A `---` on its own line draws a horizontal rule:
